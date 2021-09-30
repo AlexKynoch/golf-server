@@ -33,6 +33,7 @@ app.post("/user", async (req, res) => {
     !req.body.userName ||
     !req.body.password ||
     !req.body.email ||
+    !req.body.location ||
     !req.body.nameFirst
   ) {
     return res.sendStatus(400).send();
@@ -288,6 +289,14 @@ app.put("/session/:id", async (req, res) => {
   res.send({ message: "Session updated." });
 });
 
+// add session user
+app.put("/sessionUser/:id", async (req, res) => {
+  await Session.findOneAndUpdate(
+    { _id: ObjectId(req.params.id) },
+    { $push: { sessionUsers: req.body.user } }
+  );
+  res.send({ message: "Session updated." });
+});
 //
 //User
 //
