@@ -8,6 +8,7 @@ const { Location } = require("./models/location");
 const { Session } = require("./models/session");
 const { User } = require("./models/user");
 const port = process.env.PORT || 3005;
+var ObjectId = require("mongodb").ObjectId;
 
 mongoose.connect(
   "mongodb+srv://root:toor@cluster0.kil7v.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
@@ -28,11 +29,9 @@ app.use(morgan("combined"));
 
 // add new user
 app.post("/user", async (req, res) => {
-  tokens = uuidv4();
   if (
     !req.body.userName ||
     !req.body.password ||
-    !req.body.location ||
     !req.body.email ||
     !req.body.nameFirst
   ) {
@@ -45,14 +44,51 @@ app.post("/user", async (req, res) => {
     role: req.body.role,
     email: req.body.email,
     phone: req.body.phone,
-    availabilty: req.body.availability,
-    userNew: True,
+    availability: [
+      ["Monday", false],
+      ["Tuesday", false],
+      ["Wednesday", false],
+      ["Thursday", false],
+      ["Friday", false],
+      ["Saturday", false],
+      ["Sunday", false],
+    ],
+    userNew: true,
     nameFirst: req.body.nameFirst,
     nameLast: req.body.nameLast,
     details: req.body.details,
-    token: tokens,
+    token: undefined,
   });
   user.save();
+  res.send({ result: true });
+});
+
+// add new admin
+app.post("/admin", async (req, res) => {
+  if (
+    !req.body.userName ||
+    !req.body.password ||
+    !req.body.email ||
+    !req.body.nameFirst
+  ) {
+    return res.sendStatus(400).send();
+  }
+  if (!req.body.location && req.body.role === CGA) {
+    return res.sendStatus(400).send();
+  }
+  const admin = new Admin({
+    userName: req.body.userName,
+    password: req.body.password,
+    location: req.body.location,
+    role: req.body.role,
+    email: req.body.email,
+    phone: req.body.phone,
+    nameFirst: req.body.nameFirst,
+    nameLast: req.body.nameLast,
+    details: req.body.details,
+    token: undefined,
+  });
+  admin.save();
   res.send({ result: true });
 });
 
@@ -100,14 +136,6 @@ app.post("/auth", async (req, res) => {
 //
 //Admin
 //
-
-//create admin
-app.post("/admin", async (req, res) => {
-  const newAdmin = req.body;
-  const admin = new Location(newAdmin);
-  await admin.save();
-  res.send({ message: "New admin added." });
-});
 
 // get all admin
 app.get("/admin", async (req, res) => {

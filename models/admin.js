@@ -10,6 +10,7 @@ const adminSchema = mongoose.Schema({
   //   availabilty: String,
   nameFirst: String,
   nameLast: String,
+  details: String,
 });
 
 module.exports.Admin = mongoose.model("Admin", adminSchema);
