@@ -297,6 +297,16 @@ app.put("/sessionUser/:id", async (req, res) => {
   );
   res.send({ message: "Session updated." });
 });
+
+// remove session user
+app.put("/sessionDelUser/:id", async (req, res) => {
+  await Session.findOneAndUpdate(
+    { _id: ObjectId(req.params.id) },
+    { $pull: { sessionUsers: req.body.user } }
+  );
+  res.send({ message: "Session updated." });
+});
+
 //
 //User
 //
