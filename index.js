@@ -291,20 +291,31 @@ app.put("/session/:id", async (req, res) => {
 
 // add session user
 app.put("/sessionUser/:id", async (req, res) => {
-  await Session.findOneAndUpdate(
+  const ret = await Session.findOneAndUpdate(
     { _id: ObjectId(req.params.id) },
-    { $push: { sessionUsers: req.body.user } }
+    { $addToSet: { sessionUsers: req.body.user } },
+    { returnOriginal: false }
   );
-  res.send({ message: "Session updated." });
+  res.send({ message: "Session updated.", body: ret });
+  // if (sessionUsers.length <= userlimit) {
+  //   res.send({ message: "Session updated." });
+  // } else {
+  //   Session.findOneAndUpdate(
+  //     { _id: ObjectId(req.params.id) },
+  //     { $pull: { sessionUsers: req.body.user } }
+  //   );
+  //   res.send({ message: "Cannot update, to many users." });
+  // }
 });
 
 // remove session user
 app.put("/sessionDelUser/:id", async (req, res) => {
-  await Session.findOneAndUpdate(
+  const ret = await Session.findOneAndUpdate(
     { _id: ObjectId(req.params.id) },
-    { $pull: { sessionUsers: req.body.user } }
+    { $pull: { sessionUsers: req.body.user } },
+    { returnOriginal: false }
   );
-  res.send({ message: "Session updated." });
+  res.send({ message: "Session updated.", body: ret });
 });
 
 //
