@@ -291,6 +291,11 @@ app.put("/session/:id", async (req, res) => {
 
 // add session user
 app.put("/sessionUser/:id", async (req, res) => {
+  const prev = await Session.findOne({ _id: ObjectId(req.params.id) });
+  // res.send(prev);
+  if (prev.sessionUsers.length >= prev.userLimit) {
+    return res.send({ message: "Cannot update, to many users." });
+  }
   const ret = await Session.findOneAndUpdate(
     { _id: ObjectId(req.params.id) },
     { $addToSet: { sessionUsers: req.body.user } },
