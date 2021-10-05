@@ -8,7 +8,6 @@ const sessionSchema = mongoose.Schema({
   sessionTimeStart: String,
   sessionTimeFinish: String,
   userLimit: Number,
-  cgaValidation: Boolean,
   details: String,
 });
 

@@ -244,12 +244,38 @@ app.put("/location/:id", async (req, res) => {
 //Sessions
 //
 // post a session
+// app.post("/session", async (req, res) => {
+//   const newSession = req.body;
+//   console.log(newSession);
+//   const session = new Session(newSession);
+//   await session.save();
+//   res.send({ message: "New session created." });
+// });
+
 app.post("/session", async (req, res) => {
-  const newSession = req.body;
-  console.log(newSession);
-  const session = new Session(newSession);
-  await session.save();
-  res.send({ message: "New session created." });
+  if (
+    !req.body.date ||
+    !req.body.volunteer ||
+    !req.body.sessionUsers ||
+    !req.body.sessionLocation ||
+    !req.body.sessionTimeStart ||
+    !req.body.sessionTimeFinish ||
+    !req.body.userLimit
+  ) {
+    return res.sendStatus(400).send();
+  }
+  const session = new Session({
+    date: req.body.date,
+    volunteer: req.body.volunteer,
+    sessionUsers: req.body.sessionUsers,
+    sessionLocation: req.body.sessionLocation,
+    sessionTimeStart: req.body.sessionTimeStart,
+    sessionTimeFinish: req.body.sessionTimeFinish,
+    userLimit: req.body.userLimit,
+    details: req.body.details,
+  });
+  session.save();
+  res.send({ result: true });
 });
 
 // get all sessions
@@ -302,15 +328,6 @@ app.put("/sessionUser/:id", async (req, res) => {
     { returnOriginal: false }
   );
   res.send({ message: "Session updated.", body: ret });
-  // if (sessionUsers.length <= userlimit) {
-  //   res.send({ message: "Session updated." });
-  // } else {
-  //   Session.findOneAndUpdate(
-  //     { _id: ObjectId(req.params.id) },
-  //     { $pull: { sessionUsers: req.body.user } }
-  //   );
-  //   res.send({ message: "Cannot update, to many users." });
-  // }
 });
 
 // remove session user
