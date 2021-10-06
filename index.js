@@ -36,7 +36,7 @@ app.post("/user", async (req, res) => {
     !req.body.location ||
     !req.body.nameFirst
   ) {
-    return res.sendStatus(400).send();
+    return res.sendStatus(400).send("missing required parameter");
   }
   const user = new User({
     userName: req.body.userName,
@@ -61,7 +61,7 @@ app.post("/user", async (req, res) => {
     token: undefined,
   });
   user.save();
-  res.send({ result: true });
+  res.send({ message: "New User Created" });
 });
 
 // add new admin
@@ -72,10 +72,10 @@ app.post("/admin", async (req, res) => {
     !req.body.email ||
     !req.body.nameFirst
   ) {
-    return res.sendStatus(400).send();
+    return res.sendStatus(400).send("missing required parameter");
   }
   if (!req.body.location && req.body.role === CGA) {
-    return res.sendStatus(400).send();
+    return res.sendStatus(400).send("If Role is CGA then location is required");
   }
   const admin = new Admin({
     userName: req.body.userName,
@@ -90,7 +90,7 @@ app.post("/admin", async (req, res) => {
     token: undefined,
   });
   admin.save();
-  res.send({ result: true });
+  res.send({ message: "New Admin Created" });
 });
 
 // authorisation
@@ -189,11 +189,21 @@ app.put("/admin/:id", async (req, res) => {
 //Locations
 //
 //create location
+
 app.post("/location", async (req, res) => {
-  const newLocation = req.body;
-  const location = new Location(newLocation);
-  await location.save();
-  res.send({ message: "New location added." });
+  if (!req.body.locationName || !req.body.manager) {
+    return res.sendStatus(400).send("missing required parameter");
+  }
+  const location = new Location({
+    locationName: req.body.locationName,
+    activeCGA: req.body.activeCGA,
+    activeUsers: req.body.activeUsers,
+    activeVolunteer: req.body.activeVolunteer,
+    manager: req.body.manager,
+    details: req.body.details,
+  });
+  location.save();
+  res.send({ message: "Created New Location" });
 });
 
 // get all locations
@@ -243,27 +253,19 @@ app.put("/location/:id", async (req, res) => {
 //
 //Sessions
 //
-// post a session
-// app.post("/session", async (req, res) => {
-//   const newSession = req.body;
-//   console.log(newSession);
-//   const session = new Session(newSession);
-//   await session.save();
-//   res.send({ message: "New session created." });
-// });
 
 app.post("/session", async (req, res) => {
   if (
     !req.body.date ||
     !req.body.volunteer ||
-    !req.body.sessionUsers ||
     !req.body.sessionLocation ||
     !req.body.sessionTimeStart ||
     !req.body.sessionTimeFinish ||
     !req.body.userLimit
   ) {
-    return res.sendStatus(400).send();
+    return res.sendStatus(400).send("missing required parameter");
   }
+
   const session = new Session({
     date: req.body.date,
     volunteer: req.body.volunteer,
@@ -275,7 +277,7 @@ app.post("/session", async (req, res) => {
     details: req.body.details,
   });
   session.save();
-  res.send({ result: true });
+  res.send({ Message: "created new Session" });
 });
 
 // get all sessions
