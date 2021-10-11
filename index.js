@@ -32,6 +32,8 @@ var ObjectId = require("mongodb").ObjectId;
 // };
 
 const eitherMiddleware = async (req, res, next) => {
+  next();
+  return;
   const authHeader = req.headers["authorization"];
   try {
     if (!ObjectId.isValid(authHeader)) {
@@ -239,9 +241,7 @@ app.post("/location", eitherMiddleware, async (req, res) => {
 
 // get all locations
 app.get("/location", eitherMiddleware, async (req, res) => {
-  console.log("arrived");
-  return;
-  res.send(await Location.findOne());
+  res.send(await Location.find());
 });
 
 // get location by name
