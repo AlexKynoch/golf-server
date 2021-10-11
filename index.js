@@ -183,22 +183,27 @@ app.get("/adminname/:userName", eitherMiddleware, async (req, res) => {
 
 // get admin by location
 app.get("/adminlocation/:location", eitherMiddleware, async (req, res) => {
-  res.send(await Admin.findOne({ location: req.params.location }));
+  res.send(await Admin.find({ location: req.params.location }));
+});
+
+// get CGA by location
+app.get("/cgalocation/:location", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ location: req.params.location, role: "CGA" }));
 });
 
 // get admin by role
 app.get("/adminrole/:role", eitherMiddleware, async (req, res) => {
-  res.send(await Admin.findOne({ role: req.params.role }));
+  res.send(await Admin.find({ role: req.params.role }));
 });
 
 // get admin by nameFirst
 app.get("/adminfirstname/:nameFirst", eitherMiddleware, async (req, res) => {
-  res.send(await Admin.findOne({ nameFirst: req.params.nameFirst }));
+  res.send(await Admin.find({ nameFirst: req.params.nameFirst }));
 });
 
 // get admin by nameLast
 app.get("/adminlastname/:nameLast", eitherMiddleware, async (req, res) => {
-  res.send(await Admin.findOne({ nameLast: req.params.nameLast }));
+  res.send(await Admin.find({ nameLast: req.params.nameLast }));
 });
 
 // get admin by id
@@ -251,7 +256,7 @@ app.get("/locationname/:locationName", eitherMiddleware, async (req, res) => {
 
 // get location by user
 app.get("/locationuser/:activeUsers", eitherMiddleware, async (req, res) => {
-  res.send(await Location.findOne({ activeUsers: req.params.activeUsers }));
+  res.send(await Location.find({ activeUsers: req.params.activeUsers }));
 });
 
 // get location by Volunteer
@@ -260,14 +265,14 @@ app.get(
   eitherMiddleware,
   async (req, res) => {
     res.send(
-      await Location.findOne({ activeVolunteer: req.params.activeVolunteer })
+      await Location.find({ activeVolunteer: req.params.activeVolunteer })
     );
   }
 );
 
 // get location by CGA
 app.get("/locationcga/:activeCGA", eitherMiddleware, async (req, res) => {
-  res.send(await Location.findOne({ activeCGA: req.params.activeCGA }));
+  res.send(await Location.find({ activeCGA: req.params.activeCGA }));
 });
 
 // get location by Id
@@ -328,19 +333,19 @@ app.get(
   eitherMiddleware,
   async (req, res) => {
     res.send(
-      await Session.findOne({ sessionLocation: req.params.sessionLocation })
+      await Session.find({ sessionLocation: req.params.sessionLocation })
     );
   }
 );
 
 // get session by sessionDate
 app.get("/sessiondate/:date", eitherMiddleware, async (req, res) => {
-  res.send(await Session.findOne({ date: req.params.date }));
+  res.send(await Session.find({ date: req.params.date }));
 });
 
 // get session by volunteer
 app.get("/sessionvolunteer/:volunteer", eitherMiddleware, async (req, res) => {
-  res.send(await Session.findOne({ volunteer: req.params.volunteer }));
+  res.send(await Session.find({ volunteer: req.params.volunteer }));
 });
 
 // get session by id
@@ -401,22 +406,22 @@ app.get("/username/:userName", eitherMiddleware, async (req, res) => {
 
 // get user by location
 app.get("/userlocation/:location", eitherMiddleware, async (req, res) => {
-  res.send(await User.findOne({ location: req.params.location }));
+  res.send(await User.find({ location: req.params.location }));
 });
 
 // get user by role
 app.get("/userrole/:role", eitherMiddleware, async (req, res) => {
-  res.send(await User.findOne({ role: req.params.role }));
+  res.send(await User.find({ role: req.params.role }));
 });
 
 // get user by nameFirst
 app.get("/userfirstname/:nameFirst", eitherMiddleware, async (req, res) => {
-  res.send(await User.findOne({ nameFirst: req.params.nameFirst }));
+  res.send(await User.find({ nameFirst: req.params.nameFirst }));
 });
 
 // get user by nameLast
 app.get("/userlastname/:nameLast", eitherMiddleware, async (req, res) => {
-  res.send(await User.findOne({ nameLast: req.params.nameLast }));
+  res.send(await User.find({ nameLast: req.params.nameLast }));
 });
 
 // get user by id
