@@ -8,7 +8,47 @@ const { Location } = require("./models/location");
 const { Session } = require("./models/session");
 const { User } = require("./models/user");
 const port = process.env.PORT || 3005;
+const { v4: uuidv4 } = require("uuid");
 var ObjectId = require("mongodb").ObjectId;
+
+// const adminMiddleware = (req, res, next) => {
+//   const authHeader = req.headers["authorization"];
+//   const admin = await Admin.findOne({ token: authHeader });
+//   if (admin) {
+//     next(); //successfully passed gatekeeper
+//   } else {
+//     res.sendStatus(403);
+//   }
+// };
+
+// const userMiddleware = (req, res, next) => {
+//   const authHeader = req.headers["authorization"];
+//   const user = await User.findOne({ token: authHeader });
+//   if (user) {
+//     next(); //successfully passed gatekeeper
+//   } else {
+//     res.sendStatus(403);
+//   }
+// };
+
+const eitherMiddleware = async (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  try {
+    if (!ObjectId.isValid(authHeader)) {
+      throw new Error("authHeader invalid");
+      return;
+    }
+    const admin = await Admin.findOne({ token: authHeader });
+    const user = await User.findOne({ token: authHeader });
+    if (admin || user) {
+      next(); //successfully passed gatekeeper
+    } else {
+      res.sendStatus(403);
+    }
+  } catch (error) {
+    res.status(401).send({ message: error.message, name: error.name });
+  }
+};
 
 mongoose.connect(
   "mongodb+srv://root:toor@cluster0.kil7v.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
@@ -29,6 +69,7 @@ app.use(morgan("combined"));
 
 // add new user
 app.post("/user", async (req, res) => {
+  tokens = ObjectId();
   if (
     !req.body.userName ||
     !req.body.password ||
@@ -58,7 +99,7 @@ app.post("/user", async (req, res) => {
     nameFirst: req.body.nameFirst,
     nameLast: req.body.nameLast,
     details: req.body.details,
-    token: undefined,
+    token: tokens,
   });
   user.save();
   res.send({ message: "New User Created" });
@@ -66,6 +107,7 @@ app.post("/user", async (req, res) => {
 
 // add new admin
 app.post("/admin", async (req, res) => {
+  tokens = ObjectId();
   if (
     !req.body.userName ||
     !req.body.password ||
@@ -87,100 +129,89 @@ app.post("/admin", async (req, res) => {
     nameFirst: req.body.nameFirst,
     nameLast: req.body.nameLast,
     details: req.body.details,
-    token: undefined,
+    token: tokens,
   });
   admin.save();
   res.send({ message: "New Admin Created" });
 });
 
 // authorisation
-app.post("/auth", async (req, res) => {
+app.post("/userauth", async (req, res) => {
   const user = await User.findOne({ userName: req.body.userName });
   if (!user) {
     console.log("no user");
-    return res.sendStatus(401);
+    return res.sendStatus(401).send("missing username field");
   }
   if (req.body.password !== user.password) {
-    return res.sendStatus(403);
+    return res.sendStatus(403).send("incorect username or password");
   }
   user.token = uuidv4();
   await user.save();
   res.send({ token: user.token });
 });
 
-// ----------------------------------------?AUTHORIZATION MIDDLEWARe
-// app.use(async (req, res, next) => {
-//   const authHeader = req.headers["authorization"];
-//   const user = await User.findOne({ token: authHeader });
-//   if (user) {
-//     next(); //successfully passed gatekeeper
-//   } else {
-//     res.sendStatus(403);
-//   }
-// });
-// -------------------------------------?AUTHORIZATION MIDDLEWARe ENDS
-
-//
-// defining CRUD operations
-//
-
-// client logs in
-// if client exist/cr5edentials are vaild
-// token is generated
-// sent 2 places
-// first: User thats loghged in is now storing thier current session token
-// second: sent to front end
-
-// acess protected endpoint:
-// req.headers.auth from frontend === token in backend
+// authorisation
+app.post("/adminauth", async (req, res) => {
+  const admin = await Admin.findOne({ userName: req.body.userName });
+  if (!admin) {
+    console.log("no user");
+    return res.sendStatus(401).send("missing username field");
+  }
+  if (req.body.password !== admin.password) {
+    return res.sendStatus(403).send("incorect username or password");
+  }
+  admin.token = uuidv4();
+  await admin.save();
+  res.send({ token: admin.token });
+});
 
 //
 //Admin
 //
 
 // get all admin
-app.get("/admin", async (req, res) => {
+app.get("/admin", eitherMiddleware, async (req, res) => {
   res.send(await Admin.find());
 });
 
 // get admin by userName
-app.get("/adminname/:userName", async (req, res) => {
-  res.send(await Admin.find({ userName: req.params.userName }));
+app.get("/adminname/:userName", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ userName: req.params.userName }));
 });
 
 // get admin by location
-app.get("/adminlocation/:location", async (req, res) => {
-  res.send(await Admin.find({ location: req.params.location }));
+app.get("/adminlocation/:location", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ location: req.params.location }));
 });
 
 // get admin by role
-app.get("/adminrole/:role", async (req, res) => {
-  res.send(await Admin.find({ role: req.params.role }));
+app.get("/adminrole/:role", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ role: req.params.role }));
 });
 
 // get admin by nameFirst
-app.get("/adminfirstname/:nameFirst", async (req, res) => {
-  res.send(await Admin.find({ nameFirst: req.params.nameFirst }));
+app.get("/adminfirstname/:nameFirst", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ nameFirst: req.params.nameFirst }));
 });
 
 // get admin by nameLast
-app.get("/adminlastname/:nameLast", async (req, res) => {
-  res.send(await Admin.find({ nameLast: req.params.nameLast }));
+app.get("/adminlastname/:nameLast", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ nameLast: req.params.nameLast }));
 });
 
 // get admin by id
-app.get("/adminid/:id", async (req, res) => {
-  res.send(await Admin.find({ _id: req.params.id }));
+app.get("/adminid/:id", eitherMiddleware, async (req, res) => {
+  res.send(await Admin.findOne({ _id: req.params.id }));
 });
 
 // delete an admin
-app.delete("/admin/:id", async (req, res) => {
+app.delete("/admin/:id", eitherMiddleware, async (req, res) => {
   await Admin.deleteOne({ _id: ObjectId(req.params.id) });
   res.send({ message: "Admin removed." });
 });
 
 // update admin
-app.put("/admin/:id", async (req, res) => {
+app.put("/admin/:id", eitherMiddleware, async (req, res) => {
   await Admin.findOneAndUpdate({ _id: ObjectId(req.params.id) }, req.body);
   res.send({ message: "Admin updated." });
 });
@@ -190,7 +221,7 @@ app.put("/admin/:id", async (req, res) => {
 //
 //create location
 
-app.post("/location", async (req, res) => {
+app.post("/location", eitherMiddleware, async (req, res) => {
   if (!req.body.locationName || !req.body.manager) {
     return res.sendStatus(400).send("missing required parameter");
   }
@@ -207,45 +238,51 @@ app.post("/location", async (req, res) => {
 });
 
 // get all locations
-app.get("/location", async (req, res) => {
-  res.send(await Location.find());
+app.get("/location", eitherMiddleware, async (req, res) => {
+  console.log("arrived");
+  return;
+  res.send(await Location.findOne());
 });
 
 // get location by name
-app.get("/locationname/:locationName", async (req, res) => {
-  res.send(await Location.find({ locationName: req.params.locationName }));
+app.get("/locationname/:locationName", eitherMiddleware, async (req, res) => {
+  res.send(await Location.findOne({ locationName: req.params.locationName }));
 });
 
 // get location by user
-app.get("/locationuser/:activeUsers", async (req, res) => {
-  res.send(await Location.find({ activeUsers: req.params.activeUsers }));
+app.get("/locationuser/:activeUsers", eitherMiddleware, async (req, res) => {
+  res.send(await Location.findOne({ activeUsers: req.params.activeUsers }));
 });
 
 // get location by Volunteer
-app.get("/locationvolunteer/:activeVolunteer", async (req, res) => {
-  res.send(
-    await Location.find({ activeVolunteer: req.params.activeVolunteer })
-  );
-});
+app.get(
+  "/locationvolunteer/:activeVolunteer",
+  eitherMiddleware,
+  async (req, res) => {
+    res.send(
+      await Location.findOne({ activeVolunteer: req.params.activeVolunteer })
+    );
+  }
+);
 
 // get location by CGA
-app.get("/locationcga/:activeCGA", async (req, res) => {
-  res.send(await Location.find({ activeCGA: req.params.activeCGA }));
+app.get("/locationcga/:activeCGA", eitherMiddleware, async (req, res) => {
+  res.send(await Location.findOne({ activeCGA: req.params.activeCGA }));
 });
 
 // get location by Id
-app.get("/locationid/:id", async (req, res) => {
-  res.send(await Location.find({ _id: req.params.id }));
+app.get("/locationid/:id", eitherMiddleware, async (req, res) => {
+  res.send(await Location.findOne({ _id: req.params.id }));
 });
 
-// delete an admin
-app.delete("/location/:id", async (req, res) => {
+// delete a location
+app.delete("/location/:id", eitherMiddleware, async (req, res) => {
   await Location.deleteOne({ _id: ObjectId(req.params.id) });
   res.send({ message: "Location removed." });
 });
 
-// update admin
-app.put("/location/:id", async (req, res) => {
+// update location
+app.put("/location/:id", eitherMiddleware, async (req, res) => {
   await Location.findOneAndUpdate({ _id: ObjectId(req.params.id) }, req.body);
   res.send({ message: "Location updated." });
 });
@@ -254,7 +291,7 @@ app.put("/location/:id", async (req, res) => {
 //Sessions
 //
 
-app.post("/session", async (req, res) => {
+app.post("/session", eitherMiddleware, async (req, res) => {
   if (
     !req.body.date ||
     !req.body.volunteer ||
@@ -281,44 +318,50 @@ app.post("/session", async (req, res) => {
 });
 
 // get all sessions
-app.get("/sessions", async (req, res) => {
+app.get("/sessions", eitherMiddleware, async (req, res) => {
   res.send(await Session.find());
 });
 
 // get session by sessionLocation
-app.get("/sessionlocation/:sessionLocation", async (req, res) => {
-  res.send(await Session.find({ sessionLocation: req.params.sessionLocation }));
-});
+app.get(
+  "/sessionlocation/:sessionLocation",
+  eitherMiddleware,
+  async (req, res) => {
+    res.send(
+      await Session.findOne({ sessionLocation: req.params.sessionLocation })
+    );
+  }
+);
 
 // get session by sessionDate
-app.get("/sessiondate/:date", async (req, res) => {
-  res.send(await Session.find({ date: req.params.date }));
+app.get("/sessiondate/:date", eitherMiddleware, async (req, res) => {
+  res.send(await Session.findOne({ date: req.params.date }));
 });
 
 // get session by volunteer
-app.get("/sessionvolunteer/:volunteer", async (req, res) => {
-  res.send(await Session.find({ volunteer: req.params.volunteer }));
+app.get("/sessionvolunteer/:volunteer", eitherMiddleware, async (req, res) => {
+  res.send(await Session.findOne({ volunteer: req.params.volunteer }));
 });
 
 // get session by id
-app.get("/sessionid/:_id", async (req, res) => {
-  res.send(await Session.find({ _id: req.params._id }));
+app.get("/sessionid/:_id", eitherMiddleware, async (req, res) => {
+  res.send(await Session.findOne({ _id: req.params._id }));
 });
 
 // delete a session
-app.delete("/session/:id", async (req, res) => {
+app.delete("/session/:id", eitherMiddleware, async (req, res) => {
   await Session.deleteOne({ _id: ObjectId(req.params.id) });
   res.send({ message: "Session removed." });
 });
 
 // update session
-app.put("/session/:id", async (req, res) => {
+app.put("/session/:id", eitherMiddleware, async (req, res) => {
   await Session.findOneAndUpdate({ _id: ObjectId(req.params.id) }, req.body);
   res.send({ message: "Session updated." });
 });
 
 // add session user
-app.put("/sessionUser/:id", async (req, res) => {
+app.put("/sessionUser/:id", eitherMiddleware, async (req, res) => {
   const prev = await Session.findOne({ _id: ObjectId(req.params.id) });
   // res.send(prev);
   if (prev.sessionUsers.length >= prev.userLimit) {
@@ -333,7 +376,7 @@ app.put("/sessionUser/:id", async (req, res) => {
 });
 
 // remove session user
-app.put("/sessionDelUser/:id", async (req, res) => {
+app.put("/sessionDelUser/:id", eitherMiddleware, async (req, res) => {
   const ret = await Session.findOneAndUpdate(
     { _id: ObjectId(req.params.id) },
     { $pull: { sessionUsers: req.body.user } },
@@ -347,50 +390,57 @@ app.put("/sessionDelUser/:id", async (req, res) => {
 //
 
 // get all users
-app.get("/user", async (req, res) => {
+app.get("/user", eitherMiddleware, async (req, res) => {
   res.send(await User.find());
 });
 
 // get user by userName
-app.get("/username/:userName", async (req, res) => {
-  res.send(await User.find({ userName: req.params.userName }));
+app.get("/username/:userName", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ userName: req.params.userName }));
 });
 
 // get user by location
-app.get("/userlocation/:location", async (req, res) => {
-  res.send(await User.find({ location: req.params.location }));
+app.get("/userlocation/:location", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ location: req.params.location }));
 });
 
 // get user by role
-app.get("/userrole/:role", async (req, res) => {
-  res.send(await User.find({ role: req.params.role }));
+app.get("/userrole/:role", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ role: req.params.role }));
 });
 
 // get user by nameFirst
-app.get("/userfirstname/:nameFirst", async (req, res) => {
-  res.send(await User.find({ nameFirst: req.params.nameFirst }));
+app.get("/userfirstname/:nameFirst", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ nameFirst: req.params.nameFirst }));
 });
 
 // get user by nameLast
-app.get("/userlastname/:nameLast", async (req, res) => {
-  res.send(await User.find({ nameLast: req.params.nameLast }));
+app.get("/userlastname/:nameLast", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ nameLast: req.params.nameLast }));
 });
 
 // get user by id
-app.get("/userid/:id", async (req, res) => {
-  res.send(await User.find({ _id: req.params.id }));
+app.get("/userid/:id", eitherMiddleware, async (req, res) => {
+  res.send(await User.findOne({ _id: req.params.id }));
 });
 
 // delete an user
-app.delete("/user/:id", async (req, res) => {
+app.delete("/user/:id", eitherMiddleware, async (req, res) => {
   await User.deleteOne({ _id: ObjectId(req.params.id) });
   res.send({ message: "User removed." });
 });
 
 // update user
-app.put("/user/:id", async (req, res) => {
-  await User.findOneAndUpdate({ _id: ObjectId(req.params.id) }, req.body);
-  res.send({ message: "User updated." });
+app.put("/user/:id", eitherMiddleware, async (req, res) => {
+  const ret = await User.findOneAndUpdate(
+    { _id: ObjectId(req.params.id) },
+    req.body,
+    { returnOriginal: false }
+  );
+  res.send({
+    message: "User updated.",
+    body: ret,
+  });
 });
 
 app.listen(port, () => {

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+var ObjectId = require("mongodb").ObjectId;
 
 const adminSchema = mongoose.Schema({
   userName: String,
@@ -11,6 +13,7 @@ const adminSchema = mongoose.Schema({
   nameFirst: String,
   nameLast: String,
   details: String,
+  token: { type: ObjectId, required: true },
 });
 
 module.exports.Admin = mongoose.model("Admin", adminSchema);
