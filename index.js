@@ -71,7 +71,7 @@ app.use(morgan("combined"));
 
 // add new user
 app.post("/user", async (req, res) => {
-  tokens = ObjectId();
+  // tokens = ObjectId();
   if (
     !req.body.userName ||
     !req.body.password ||
@@ -109,7 +109,7 @@ app.post("/user", async (req, res) => {
 
 // add new admin
 app.post("/admin", async (req, res) => {
-  tokens = ObjectId();
+  // tokens = ObjectId();
   if (
     !req.body.userName ||
     !req.body.password ||
@@ -142,7 +142,7 @@ app.post("/userauth", async (req, res) => {
   const user = await User.findOne({ userName: req.body.userName });
   if (!user) {
     console.log("no user");
-    return res.sendStatus(401).send("missing username field");
+    return res.sendStatus(401).send("incorrect username field");
   }
   if (req.body.password !== user.password) {
     return res.sendStatus(403).send("incorect username or password");
