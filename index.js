@@ -149,7 +149,7 @@ app.post("/userauth", async (req, res) => {
   }
   user.token = uuidv4();
   await user.save();
-  res.send({ token: user.token });
+  res.send({ user });
 });
 
 // authorisation
@@ -164,7 +164,7 @@ app.post("/adminauth", async (req, res) => {
   }
   admin.token = uuidv4();
   await admin.save();
-  res.send({ token: admin.token });
+  res.send({ admin });
 });
 
 //
@@ -437,11 +437,14 @@ app.delete("/user/:id", eitherMiddleware, async (req, res) => {
 
 // update user
 app.put("/user/:id", eitherMiddleware, async (req, res) => {
+  console.log(req.body, req.params.id);
   const ret = await User.findOneAndUpdate(
     { _id: ObjectId(req.params.id) },
     req.body,
+
     { returnOriginal: false }
   );
+
   res.send({
     message: "User updated.",
     body: ret,
