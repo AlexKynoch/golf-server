@@ -13,7 +13,7 @@ const adminSchema = mongoose.Schema({
   nameFirst: String,
   nameLast: String,
   details: String,
-  // token: { type: ObjectId, required: true },
+  // token: { type: uuidv4, required: true },
 });
 
 module.exports.Admin = mongoose.model("Admin", adminSchema);

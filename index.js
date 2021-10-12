@@ -101,7 +101,7 @@ app.post("/user", async (req, res) => {
     nameFirst: req.body.nameFirst,
     nameLast: req.body.nameLast,
     details: req.body.details,
-    token: tokens,
+    // token: tokens,
   });
   user.save();
   res.send({ message: "New User Created" });
@@ -131,7 +131,7 @@ app.post("/admin", async (req, res) => {
     nameFirst: req.body.nameFirst,
     nameLast: req.body.nameLast,
     details: req.body.details,
-    token: tokens,
+    // token: tokens,
   });
   admin.save();
   res.send({ message: "New Admin Created" });
