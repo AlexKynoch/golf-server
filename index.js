@@ -81,30 +81,43 @@ app.post("/user", async (req, res) => {
   ) {
     return res.sendStatus(400).send("missing required parameter");
   }
-  const user = new User({
-    userName: req.body.userName,
-    password: req.body.password,
-    location: req.body.location,
-    role: req.body.role,
-    email: req.body.email,
-    phone: req.body.phone,
-    availability: [
-      ["Monday", false],
-      ["Tuesday", false],
-      ["Wednesday", false],
-      ["Thursday", false],
-      ["Friday", false],
-      ["Saturday", false],
-      ["Sunday", false],
-    ],
-    userNew: true,
-    nameFirst: req.body.nameFirst,
-    nameLast: req.body.nameLast,
-    details: req.body.details,
-    // token: tokens,
-  });
-  user.save();
-  res.send({ message: "New User Created" });
+  try {
+    const user = new User({
+      userName: req.body.userName,
+      password: req.body.password,
+      location: req.body.location,
+      role: req.body.role,
+      email: req.body.email,
+      phone: req.body.phone,
+      availability: [
+        ["Monday", false],
+        ["Tuesday", false],
+        ["Wednesday", false],
+        ["Thursday", false],
+        ["Friday", false],
+        ["Saturday", false],
+        ["Sunday", false],
+      ],
+      userNew: true,
+      nameFirst: req.body.nameFirst,
+      nameLast: req.body.nameLast,
+      details: req.body.details,
+      // token: tokens,
+    });
+    user.save((err, result) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(401)
+          .send({ message: "username already in use", name: 11000 });
+        // throw new Error(err);
+      } else {
+        res.status(200).send({ message: "username added", body: result });
+      }
+    });
+  } catch (error) {
+    res.status(401).send({ message: error.message, name: error.name });
+  }
 });
 
 // add new admin
@@ -121,20 +134,33 @@ app.post("/admin", async (req, res) => {
   if (!req.body.location && req.body.role === CGA) {
     return res.sendStatus(400).send("If Role is CGA then location is required");
   }
-  const admin = new Admin({
-    userName: req.body.userName,
-    password: req.body.password,
-    location: req.body.location,
-    role: req.body.role,
-    email: req.body.email,
-    phone: req.body.phone,
-    nameFirst: req.body.nameFirst,
-    nameLast: req.body.nameLast,
-    details: req.body.details,
-    // token: tokens,
-  });
-  admin.save();
-  res.send({ message: "New Admin Created" });
+  try {
+    const admin = new Admin({
+      userName: req.body.userName,
+      password: req.body.password,
+      location: req.body.location,
+      role: req.body.role,
+      email: req.body.email,
+      phone: req.body.phone,
+      nameFirst: req.body.nameFirst,
+      nameLast: req.body.nameLast,
+      details: req.body.details,
+      // token: tokens,
+    });
+    admin.save((err, result) => {
+      if (err) {
+        console.log(err);
+        res
+          .status(401)
+          .send({ message: "username already in use", name: 11000 });
+        // throw new Error(err);
+      } else {
+        res.status(200).send({ message: "username added", body: result });
+      }
+    });
+  } catch (error) {
+    res.status(401).send({ message: error.message, name: error.name });
+  }
 });
 
 // authorisation

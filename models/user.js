@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 var ObjectId = require("mongodb").ObjectId;
 
 const userSchema = mongoose.Schema({
-  userName: String,
+  userName: { type: String, required: true, unique: true},
   password: String,
   location: String,
   role: String,
